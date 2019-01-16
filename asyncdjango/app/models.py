@@ -26,13 +26,14 @@ class Order(TimeStampedModel):
         null=True,
         blank=True
     )
-    description = models.TextField(max_length=255)
+    description = models.TextField(max_length=255, blank=True, default='')
     price = models.DecimalField(
         max_digits=6,
         decimal_places=2,
         null=True,
         blank=True
     )
+    comment = models.TextField(max_length=255, blank=True, default='')
     status = models.PositiveIntegerField(choices=OrderStatus.choices())
 
     def __str__(self):
