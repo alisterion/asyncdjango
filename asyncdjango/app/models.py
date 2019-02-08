@@ -44,10 +44,32 @@ class Order(TimeStampedModel):
         blank=True
     )
     comment = models.TextField(max_length=255, blank=True, default='')
-    status = models.PositiveIntegerField(choices=OrderStatus.choices())
+    status = models.PositiveIntegerField(
+        choices=OrderStatus.choices(),
+        default=OrderStatus.NEW.value
+    )
 
     def __str__(self):
         return 'Order {}: {}'.format(self.id, self.client)
+
+    def _set_status(self, status):
+        self.status = status.value
+        self.save(update_fields=['status'])
+
+    def set_accepted(self):
+        self._set_status(OrderStatus.ACCEPTED)
+
+    def set_started(self):
+        self._set_status(OrderStatus.STARTED)
+
+    def set_finished(self):
+        self._set_status(OrderStatus.FINISHED)
+
+    def set_canceled(self):
+        self._set_status(OrderStatus.CANCELED)
+
+    def set_timeout(self):
+        self._set_status(OrderStatus.TIMEOUT)
 
 
 class OrderEvent(TimeStampedModel):
@@ -62,8 +84,22 @@ class OrderEvent(TimeStampedModel):
         related_name='events'
     )
     status = models.PositiveIntegerField(
-        choices=OrderEventStatus.choices()
+        choices=OrderEventStatus.choices(),
+        default=OrderEventStatus.NEW.value
     )
 
     def __str__(self):
         return 'Order event {}: {}'.format(self.id, self.driver)
+
+    def _set_status(self, status):
+        self.status = status.value
+        self.save(update_fields=['status'])
+
+    def set_accepted(self):
+        self._set_status(OrderEventStatus.ACCEPTED)
+
+    def set_rejected(self):
+        self._set_status(OrderEventStatus.REJECTED)
+
+    def set_timeout(self):
+        self._set_status(OrderEventStatus.TIMEOUT)

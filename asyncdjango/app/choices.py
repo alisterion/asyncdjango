@@ -19,7 +19,7 @@ class OrderStatus(IntEnum):
     STARTED = 30
     FINISHED = 40
     CANCELED = 50
-    NO_DRIVERS = 60
+    TIMEOUT = 60
 
 
 class OrderEventStatus(IntEnum):

@@ -44,7 +44,7 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet,
 
     def perform_create(self, serializer):
         order = super(OrderViewSet, self).perform_create(serializer)
-        OrderService(order).confirm()
+        OrderService(order).confirm(first=True)
 
     @action(methods=['put'], detail=True,
             permission_classes=[IsAuthorOfOrder],
