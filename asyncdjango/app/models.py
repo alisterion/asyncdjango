@@ -1,13 +1,23 @@
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 from ordered_model.models import OrderedModel
 
 from asyncdjango.app.choices import OrderStatus, OrderEventStatus
 
+User = get_user_model()
+
+
+class Driver(User):
+    car = models.ImageField(blank=True)
+
+
+class Client(User):
+    phone = models.CharField(max_length=20)
+
 
 class Queue(OrderedModel):
-    driver = models.OneToOneField(settings.AUTH_USER_MODEL, models.CASCADE)
+    driver = models.OneToOneField(Driver, models.CASCADE)
 
     def __str__(self):
         return '{}: {}'.format(self.driver, self.order)
@@ -15,12 +25,12 @@ class Queue(OrderedModel):
 
 class Order(TimeStampedModel):
     client = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        Client,
         models.CASCADE,
         related_name='my_orders'
     )
     driver = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        Driver,
         models.CASCADE,
         related_name='orders',
         null=True,
@@ -47,7 +57,7 @@ class OrderEvent(TimeStampedModel):
         related_name='events'
     )
     driver = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        Driver,
         models.CASCADE,
         related_name='events'
     )

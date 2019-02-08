@@ -1,1 +1,0 @@
-DRIVER_GROUP = 'driver'

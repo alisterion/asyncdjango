@@ -1,6 +1,17 @@
 from asyncdjango.app.choices import OrderEventStatus
 from asyncdjango.app.models import Order, OrderEvent
 from asyncdjango.app.services.queue import QueueService
+from asyncdjango.celery import app
+
+
+@app.task
+def check_order_status(event_id):
+    try:
+        event = OrderEvent.objects.get(pk=event_id)
+    except OrderEvent.DoesNotExist:
+        print('Order event {} does not exist'.format(event_id))
+        return
+    # TODO
 
 
 class OrderService(object):

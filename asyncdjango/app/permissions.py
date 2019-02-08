@@ -1,13 +1,18 @@
 from rest_framework import permissions
 
-from asyncdjango.app.models import Order, OrderEvent
-from asyncdjango.app.services.user import user_service
+from asyncdjango.app.models import Order, OrderEvent, Driver
 
 
 class IsDriver(permissions.IsAuthenticated):
+    def is_driver(self, user):
+        try:
+            return bool(user.driver)
+        except Driver.DoesNotExist:
+            return False
+
     def has_permission(self, request, view):
         return super(IsDriver, self).has_permission(request, view) and \
-               user_service.has_driver_role(request.user)
+               self.is_driver(request.user)
 
 
 class IsAuthorOfOrder(permissions.IsAuthenticated):

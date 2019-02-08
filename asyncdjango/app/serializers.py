@@ -1,9 +1,6 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from asyncdjango.app.models import Order, OrderEvent, Queue
-
-User = get_user_model()
+from asyncdjango.app.models import Order, OrderEvent, Queue, Client
 
 
 class QueueSerializer(serializers.ModelSerializer):
@@ -18,7 +15,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ('client', 'description', )
 
     client = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
+        queryset=Client.objects.all(),
         default=serializers.CurrentUserDefault()
     )
 
@@ -35,7 +32,6 @@ class OrderEventSerializer(serializers.ModelSerializer):
         fields = ('client', 'description', 'status', )
 
     client = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
         source='order.client', read_only=True)
     description = serializers.CharField(
         source='order.description', read_only=True)

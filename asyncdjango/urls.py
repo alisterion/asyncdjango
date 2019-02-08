@@ -16,7 +16,25 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from rest_framework import routers
+from rest_framework_swagger.views import get_swagger_view
+
+from asyncdjango.app.views import OrderEventViewSet, QueueViewSet, OrderViewSet
+
+router = routers.DefaultRouter(trailing_slash=False)
+router.register('queue', QueueViewSet)
+router.register('orders', OrderViewSet)
+router.register('events', OrderEventViewSet)
+
+api_patterns = [
+    path('api/', include(router.urls)),
+]
+
+
+schema_view = get_swagger_view(title='Async Taxi App API', patterns=api_patterns)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls'))
-]
+    path('api-auth/', include('rest_framework.urls')),
+    path('docs/', schema_view),
+] + api_patterns
