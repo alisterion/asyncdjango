@@ -1,29 +1,8 @@
-from asyncdjango.app.choices import OrderEventStatus, OrderStatus, MessageEvent
+from asyncdjango.app.choices import MessageEvent
 from asyncdjango.app.models import Order, OrderEvent
 from asyncdjango.app.services.messenger import Messenger
 from asyncdjango.app.services.queue import QueueService
-from asyncdjango.celery import app
-
-
-@app.task
-def check_order_status(event_id):
-    try:
-        event = OrderEvent.objects.get(pk=event_id)
-    except OrderEvent.DoesNotExist:
-        print('Order event {} does not exist'.format(event_id))
-        return
-
-    if event.status == OrderEventStatus.NEW.value:
-        Messenger.send_event(
-            event.driver,
-            MessageEvent.DISMISSED.value,
-            {'event_id': event.id}
-        )
-        event.set_timeout()
-
-    if event.order.status == OrderStatus.NEW.value:
-        # confirm to send event to next driver
-        OrderService(event=event).confirm()
+from asyncdjango.app.tasks import check_order_status
 
 
 class OrderService(object):
@@ -39,7 +18,7 @@ class OrderService(object):
     def confirm(self, first=False):
         driver = QueueService.first() \
             if first \
-            else QueueService(self.event.driver).next()
+            else QueueService.next(self.event.driver)
 
         if not driver:
             Messenger.send_event(
