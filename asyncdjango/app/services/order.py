@@ -1,5 +1,6 @@
-from asyncdjango.app.choices import OrderEventStatus, OrderStatus
+from asyncdjango.app.choices import OrderEventStatus, OrderStatus, MessageEvent
 from asyncdjango.app.models import Order, OrderEvent
+from asyncdjango.app.services.messenger import Messenger
 from asyncdjango.app.services.queue import QueueService
 from asyncdjango.celery import app
 
@@ -13,10 +14,15 @@ def check_order_status(event_id):
         return
 
     if event.status == OrderEventStatus.NEW.value:
-        # TODO: send dismiss event to driver
+        Messenger.send_event(
+            event.driver,
+            MessageEvent.DISMISSED.value,
+            {'event_id': event.id}
+        )
         event.set_timeout()
 
     if event.order.status == OrderStatus.NEW.value:
+        # confirm to send event to next driver
         OrderService(event=event).confirm()
 
 
@@ -36,22 +42,41 @@ class OrderService(object):
             else QueueService(self.event.driver).next()
 
         if not driver:
-            # TODO: send event 'no_drivers' to user
+            Messenger.send_event(
+                self.order.client,
+                MessageEvent.NO_DRIVERS.value,
+                {'order_id': self.order.id}
+            )
             self.order.set_timeout()
             return
 
         event = self._create_event(driver)
-        # TODO: send async event to next driver in queue
+        Messenger.send_event(
+            driver,
+            MessageEvent.NEW_ORDER.value,
+            {'event_id': event.id}
+        )
 
         # run async task to check statuses after 30 secs
         check_order_status.apply_async(args=(event.id,), countdown=30)
 
     def cancel(self):
-        # TODO: send cancel event to drivers
+        for event in self.order.events.all():
+            Messenger.send_event(
+                event.driver,
+                MessageEvent.ACCEPTED.value,
+                {'event_id': event.id}
+            )
+            event.set_timeout()
+
         self.order.set_canceled()
 
     def accept(self):
-        # TODO: send accept event to client
+        Messenger.send_event(
+            self.order.client,
+            MessageEvent.ACCEPTED.value,
+            {'order_id': self.order.id}
+        )
         self.order.set_accepted()
         self.event.set_accepted()
 
@@ -60,16 +85,26 @@ class OrderService(object):
         self.event.set_rejected()
 
     def arrive(self):
-        # TODO: send arrive event to client
-        pass
+        Messenger.send_event(
+            self.order.driver,
+            MessageEvent.ARRIVED.value,
+            {'order_id': self.order.id}
+        )
 
     def start(self):
-        # TODO: send start event to client
+        Messenger.send_event(
+            self.order.driver,
+            MessageEvent.STARTED.value,
+            {'order_id': self.order.id}
+        )
         self.order.set_started()
 
-    def finish(self):
-        # TODO: send finish event with price to client
-        pass
+    def finish(self, price):
+        Messenger.send_event(
+            self.order.driver,
+            MessageEvent.FINISHED.value,
+            {'order_id': self.order.id, 'price': price}
+        )
 
     def confirm_finish(self):
         self.order.set_finished()

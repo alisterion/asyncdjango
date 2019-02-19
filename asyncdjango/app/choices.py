@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class IntEnum(int, Enum):
+class BaseEnum(Enum):
     @classmethod
     def choices(cls):
         return tuple([
@@ -11,6 +11,14 @@ class IntEnum(int, Enum):
     @classmethod
     def get_description(cls, value):
         return dict(cls.choices()).get(value)
+
+
+class IntEnum(int, BaseEnum):
+    pass
+
+
+class CharEnum(str, BaseEnum):
+    pass
 
 
 class OrderStatus(IntEnum):
@@ -27,3 +35,17 @@ class OrderEventStatus(IntEnum):
     ACCEPTED = 20
     REJECTED = 30
     TIMEOUT = 40
+
+
+class MessageEvent(CharEnum):
+    # drivers
+    NEW_ORDER = 'new_order'
+    CANCELED = 'canceled'
+    DISMISSED = 'dismissed'
+
+    # clients
+    NO_DRIVERS = 'no_drivers'
+    ACCEPTED = 'accepted'
+    ARRIVED = 'arrived'
+    STARTED = 'started'
+    FINISHED = 'finished'

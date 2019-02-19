@@ -112,7 +112,8 @@ class OrderEventViewSet(viewsets.GenericViewSet):
             serializer_class=OrderEventFinishSerializer)
     def finish(self, request, *args, **kwargs):
         event = self.get_object()
-        sz = self.get_serializer(event)
+        sz = self.get_serializer(event, data=request.data)
+        sz.is_valid(raise_exception=True)
         sz.save()
-        OrderService(event=event).finish()
+        OrderService(event=event).finish(sz.validate_data['price'])
         return Response(sz.data)
