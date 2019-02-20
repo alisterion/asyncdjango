@@ -73,8 +73,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'asyncdjango.wsgi.application'
-ASGI_APPLICATION = 'asyncdjango.routing.application'
 
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'asgi_redis.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('localhost', 6379)],
+        },
+        'ROUTING': 'asyncdjango.routing.channel_routing',
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -124,3 +133,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+LOGIN_URL = 'rest_framework:login'
+LOGOUT_URL = 'rest_framework:logout'

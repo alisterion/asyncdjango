@@ -43,7 +43,7 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet,
     serializer_class = OrderSerializer
 
     def perform_create(self, serializer):
-        order = super(OrderViewSet, self).perform_create(serializer)
+        order = serializer.save(client=self.request.user)
         OrderService(order).confirm(first=True)
 
     @action(methods=['put'], detail=True,
@@ -68,11 +68,10 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet,
 
 class OrderEventViewSet(viewsets.GenericViewSet):
     queryset = OrderEvent.objects.all()
-    permission_classes = (IsDriver, )
+    permission_classes = (IsDriver, IsAuthorOfOrderEvent, )
     serializer_class = OrderEventSerializer
 
     @action(methods=['put'], detail=True,
-            permission_classes=[IsAuthorOfOrderEvent],
             serializer_class=serializers.Serializer)
     def accept(self, request, *args, **kwargs):
         event = self.get_object()
@@ -81,7 +80,6 @@ class OrderEventViewSet(viewsets.GenericViewSet):
         return Response(sz.data)
 
     @action(methods=['put'], detail=True,
-            permission_classes=[IsAuthorOfOrderEvent],
             serializer_class=serializers.Serializer)
     def reject(self, request, *args, **kwargs):
         event = self.get_object()
@@ -90,7 +88,6 @@ class OrderEventViewSet(viewsets.GenericViewSet):
         return Response(sz.data)
 
     @action(methods=['put'], detail=True,
-            permission_classes=[IsAuthorOfOrderEvent],
             serializer_class=serializers.Serializer)
     def arrive(self, request, *args, **kwargs):
         event = self.get_object()
@@ -99,7 +96,6 @@ class OrderEventViewSet(viewsets.GenericViewSet):
         return Response(sz.data)
 
     @action(methods=['put'], detail=True,
-            permission_classes=[IsAuthorOfOrderEvent],
             serializer_class=serializers.Serializer)
     def start(self, request, *args, **kwargs):
         event = self.get_object()
@@ -108,7 +104,6 @@ class OrderEventViewSet(viewsets.GenericViewSet):
         return Response(sz.data)
 
     @action(methods=['put'], detail=True,
-            permission_classes=[IsAuthorOfOrderEvent],
             serializer_class=OrderEventFinishSerializer)
     def finish(self, request, *args, **kwargs):
         event = self.get_object()

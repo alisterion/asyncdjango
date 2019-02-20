@@ -1,6 +1,18 @@
 from rest_framework import serializers
 
-from asyncdjango.app.models import Order, OrderEvent, Queue, Client
+from asyncdjango.app.models import Order, OrderEvent, Queue, Client, Driver
+
+
+class ClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = ('first_name', 'last_name', 'phone', )
+
+
+class DriverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Driver
+        fields = ('first_name', 'last_name', 'car', )
 
 
 class QueueSerializer(serializers.ModelSerializer):
@@ -12,12 +24,11 @@ class QueueSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ('client', 'description', )
+        fields = ('client', 'description', 'driver', 'status', )
+        read_only_fields = ('client', 'driver', 'status', )
 
-    client = serializers.PrimaryKeyRelatedField(
-        queryset=Client.objects.all(),
-        default=serializers.CurrentUserDefault()
-    )
+    driver = DriverSerializer()
+    client = ClientSerializer()
 
 
 class OrderFinishSerializer(serializers.ModelSerializer):
@@ -30,16 +41,14 @@ class OrderEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderEvent
         fields = ('client', 'description', 'status', )
+        read_only_fields = ('client', 'description', 'status', )
 
-    client = serializers.PrimaryKeyRelatedField(
-        source='order.client', read_only=True)
-    description = serializers.CharField(
-        source='order.description', read_only=True)
-    status = serializers.IntegerField(read_only=True)
+    client = ClientSerializer(source='order.client')
+    description = serializers.CharField(source='order.description')
 
 
 class OrderEventFinishSerializer(OrderEventSerializer):
-    class Meta:
+    class Meta(OrderEventSerializer.Meta):
         model = OrderEvent
         fields = ('client', 'description', 'status', 'price', )
 

@@ -1,18 +1,24 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 from ordered_model.models import OrderedModel
 
 from asyncdjango.app.choices import OrderStatus, OrderEventStatus
 
-User = get_user_model()
-
 
 class Driver(User):
+    class Meta(User.Meta):
+        verbose_name = 'Driver'
+        verbose_name_plural = 'Drivers'
+
     car = models.ImageField(blank=True)
 
 
 class Client(User):
+    class Meta(User.Meta):
+        verbose_name = 'Client'
+        verbose_name_plural = 'Clients'
+
     phone = models.CharField(max_length=20)
 
 
